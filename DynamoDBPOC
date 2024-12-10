@@ -1,0 +1,64 @@
+Restore a DynamoDB table from one environment to another
+
+This document gives a detailed step by step process to restore a dynamodb table from one environment to another.
+
+Step 1:
+
+Go to the DynamoDB console in the AWS account from which the Table is to be restore and click on Export to S3 from left window.
+
+![alt text](image.png) 
+
+Step 2:
+
+Fill in the details:-
+
+a) Source Table
+
+b) Destination S3 bucket. Choose any existing bucket (DevOps reusable bucket) for the same. Make sure to add the below bucket policy in the bucket
+
+
+
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "dynamodbbackup",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::<destination-account-id>:root"
+            },
+            "Action": [
+                "s3:GetObject",
+                "s3:GetObjectAcl"
+            ],
+            "Resource": "arn:aws:s3:::<bucket-name>/*"
+        }
+    ]
+}
+c) Keep the rest of the values as default and click export.
+
+![alt text](image-1.png).
+
+Step 3:
+
+Once the export job is completed login to the destination aws account and click on import from S3 from the left window and fill the details.
+
+     a) Source S3 URL. Copy the S3 URI from the Source account where the backup was exported and paste it here
+
+     b) Source AWS account number
+
+     c) Import File compression should be GZIP.
+
+![alt text](image-2.png)
+
+Enter the table details. Table Name would be the restored table name. Partition key and Sort key must be taken from the Source Table and fill here accordingly and click next.
+
+![alt text](image-3.png)
+
+Select the below shown options and create secondary indexes taking reference from the Source Table if any.
+
+![alt text](image-4.png)
+
+Review and import.
+
+Monitor the import job and it will fail but do not worry the data will be restored in the destination table just check the import item count number. The error count you see are manifest files which are not a part of the dynamodb data.
